@@ -6,4 +6,4 @@ def main():
     terminal = Terminal(view)
     view.window.mainloop()
 
-main()
+main()  

@@ -1,5 +1,15 @@
 import tkinter as tk
 import subprocess
+import psycopg2
+from psycopg2 import OperationalError
+
+
+
+
+# cursor = conn.cursor()
+# cursor.execute("SELECT * FROM villes;")
+# rows = cursor.fetchall()
+
 
 class Problem:
 	
@@ -34,8 +44,8 @@ class Problem:
 	def start_prob(self, i):
 		self.view.tab_files[self.indice_prob]["path"] = "prob: "+str(i)
 		size = len(self.problem_list)
-		for i in range(size):
-			self.problem_list[i]["button"].pack_forget()
+		for j in range(size):
+			self.problem_list[j]["button"].pack_forget()
 		self.view.main_entry.pack(side="top")
 		self.view.main_entry.insert("end", "#"+self.problem_list[i]["title"]+"\n#"+self.problem_list[i]["description"])
 		
@@ -50,13 +60,24 @@ class Problem:
 		stdout = ""
 		stderr = ""
 		file_txt = self.view.main_entry.get("1.0", "end")
-		file_txt += "\n#martinzivojinovic1808200422210770\nprint("
+		new = subprocess.run("touch code_me_if_u_can_file_test.py && pwd", shell=True, capture_output=True, text=True).stdout.split("\n")[0] + "/code_me_if_u_can_file_test.py"
 		while(error == -1 and k<nb_tests):
-			output = subprocess.run('print("hello")',shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-			print(output.stderr.decode(), output.stdout.decode())
-			k += 1
-		error = 0
-		k=0
+			call_function = f"\nprint({self.problem_list[i]['title']}("
+			nb_param = len(self.problem_list[i]["test"][k]) - 1
+			for j in range(nb_param):
+				call_function += str(self.problem_list[i]["test"][k][j])
+				if(j != nb_param-1):
+					call_function += ", "
+			call_function += "))"
+			with open(new, "w") as fichier:
+				fichier.write(file_txt+call_function)
+			output_test = subprocess.run(f"python {new}", shell=True, capture_output=True, text=True)
+			if(output_test.stderr != "" or output_test.stdout.split("\n")[0] != str(self.problem_list[i]["test"][k][nb_param])):
+				error = 1
+				stdout = output_test.stdout
+				stderr = output_test.stderr
+			else:	
+				k += 1
 		txt="All tests passed, wp sir"
 		if(error != -1):
 			txt = ""
@@ -64,13 +85,47 @@ class Problem:
 			txt = str(k)+" tests passed on "+str(nb_tests)+", input: "
 			for j in range(nb_param):
 				txt+=str(self.problem_list[i]["test"][k][j])
-			txt+=" output: "+""+" when "+str(self.problem_list[i]["test"][k][nb_param])+" was expected"
+			if(stderr == ""):
+				txt+=" output: "+stdout+" when "+str(self.problem_list[i]["test"][k][nb_param])+" was expected"
+			else:
+				txt += " stderr: " + stderr
 		win_label = tk.Label(result, text=txt, bg="black", fg="white")
 		win_label.pack(side="top")
 		result.mainloop()
 
 
 	def database(self):
+		# conn = psycopg2.connect(
+		# 	dbname="cmiyc",
+		# 	user="postgres",
+		# 	password="",
+		# 	host="",
+		# 	port=""
+		# )
+		# cursor = conn.cursor()
+		# cursor.execute("SELECT * FROM problems_list;")
+		# rows = cursor.fetchall()
+		# cursor.close()
+		# conn.close()
+		# result_tab = []
+		# nb_problems = len(rows)
+		# for i in range(nb_problems):
+		# 	result.append({"title": rows[i][0], "difficult": rows[i][1], "description": rows[i][2]})
 		return [{"title": "maxi", "difficult": "easy", 
 		"description": "Given an array of n integers, return the indice of the bigger of them, -1 for an empty tab. The name of your function is maxi and take one parameter",
-		"test":[[[1, 2, 3, 4], 3], [[2, 2, 3], 2], [[], -1]]}]
+		"test":[[[1, 2, 3, 4], 3], [[2, 2, 3], 2], [[], -1]]},
+		{"title": "sort", "difficult": "easy", 
+		"description": "Given an array of n integers, return the sorted array. The name of your function is array and take one parameter",
+		"test":[[[2, 1, 3, 1], [1, 1, 2, 3]], [[54, 5, 8, 10, 11, 2, 3], [2, 3, 5, 8, 10, 11, 54]], [[], []]]}]
+
+
+# def maxi(tab):
+#    if(len(tab) == 0):
+#       return -1
+#    result = 0
+#    the_max = tab[0]
+#    for i in range(len(tab)):
+#       if(tab[i]>the_max):
+#          the_max = tab[i]
+#          result = i
+#    return i

@@ -10,6 +10,7 @@ class View:
         self.window.geometry("1500x800")
         self.window.title("Code me if you can")
         self.current_tab = 0
+        self.indent = 0
         self.window.config(bg="black")
         self.approved_ext = ["c", "py", "cpp"]
         self.top_frame = tk.Frame(self.window, bg="black")
@@ -21,12 +22,36 @@ class View:
         self.tab_files[0]["button"].pack(side="left")
         self.main_entry = tk.Text(self.window, width=300, height=35, foreground="white", bg="#{:02X}{:02X}{:02X}".format(24, 55, 69))
         self.main_entry.pack(side="top")
+        self.main_entry.bind("<KeyRelease>", lambda event: self.key_release_code(event))
+
         self.terminal = tk.Text(self.window, width=300, height=20, foreground="white", bg="#{:02X}{:02X}{:02X}".format(30, 50, 69))
         self.terminal.pack(side="bottom")
         self.config_menu()
         self.problems = []
         self.problem_tab = None
         self.window.bind("<Control-s>", lambda event : self.save(event))
+
+    
+    def key_release_code(self, event):
+        event = str(event)
+        ligne, colonne = map(lambda x: int(x), (self.main_entry.index("insert").split('.')))
+        if("keysym=Return" in event):
+            i = 0
+            print(i, self.main_entry.get(f"{ligne-1}.{i}", f"{ligne-1}.{i+1}"), self.main_entry.get(f"{ligne-1}.{i}", f"{ligne-1}.{i+1}")==" ", ligne)
+
+            while(self.main_entry.get(f"{ligne-1}.{i}", f"{ligne-1}.{i+1}") == "    "):
+                print(i, self.main_entry.get(f"{ligne-1}.{i}", f"{ligne-1}.{i+1}")=="", self.main_entry.get(f"{ligne-1}.{i}", f"{ligne-1}.{i+1}")==" ")
+                self.main_entry.insert(self.main_entry.index("insert"), "   ")
+                i += 1
+            
+    # def key_pressed_code(self, event):
+    #     event = str(event)
+    #     ligne, colonne = map(lambda x: int(x), (self.main_entry.index("insert").split('.')))
+    #     last_char = self.main_entry.get(f"{ligne}.{colonne-1}", f"{ligne}.{colonne}")
+    #     if((last_char == ':' or last_char == '{') and "keysym=Return" in event):
+    #         self.indent += 1
+
+
 
     def open_file(self):
         file_path = filedialog.askopenfilename()
